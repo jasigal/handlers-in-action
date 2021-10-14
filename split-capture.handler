@@ -1,0 +1,5 @@
+split(vpair(x,y),
+  a . b . split(vpair(w, z),
+    x . y . return(vpair(a,b))
+  )
+)

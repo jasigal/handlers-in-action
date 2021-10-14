@@ -1,0 +1,7 @@
+case(inl(x),
+    y . case(inl(vunit),
+            x . return(vpair(x,y)),
+            a . return(vunit)
+        ),
+    z . return(vunit)
+)

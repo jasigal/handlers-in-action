@@ -1,0 +1,1 @@
+let x = fst(cpair(return(a),return(b))) in return(x)
