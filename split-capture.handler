@@ -1,5 +1,3 @@
-split(vpair(x,y),
-  a . b . split(vpair(w, z),
-    x . y . return(vpair(a,b))
-  )
-)
+split (x,y) with
+  a, b -> split (w, z) with
+    x, y -> return((a, b))

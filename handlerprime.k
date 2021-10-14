@@ -5,17 +5,17 @@ module HANDLERPRIME-SYNTAX
   imports KVAR-SYNTAX
 
   syntax Val ::= KVar
-               | "vunit"
-               | "vpair" "(" Val "," Val ")"
+               | "()"
+               | "(" Val "," Val ")"
                | "inl" "(" Val ")"
                | "inr" "(" Val ")"
                | "{" Comp "}"
                | "(" Val ")" [bracket]
 
 
-  syntax Comp ::= "split" "(" Val "," SplitFst ")"
-                | "case0" "(" Val ")"
-                | "case" "(" Val "," CaseL "," CaseR ")"
+  syntax Comp ::= "split" Val "with" SplitFst
+                | "void" "(" Val ")"
+                | "case" Val "of" "{" CaseL ";" CaseR "}"
                 | Val "!"
                 | Return
                 | "let" KVar "=" Comp "in" Comp [strict(2)]
@@ -28,17 +28,17 @@ module HANDLERPRIME-SYNTAX
                 | "(" Comp ")" [bracket]
     
     syntax Return ::= "return" "(" Val ")"
-    syntax Lambda ::= "\\" KVar "." Comp  [binder]
-    syntax CUnit ::= "cunit"
-    syntax CPair ::= "cpair" "(" Comp "," Comp ")"
+    syntax Lambda ::= "\\" KVar "->" Comp  [binder]
+    syntax CUnit ::= "<>"
+    syntax CPair ::= "<" Comp "," Comp ">"
 
     syntax Canonical ::= Return | Lambda | CUnit | CPair
 
-    syntax SplitFst ::= KVar "." SplitSnd [binder]
-    syntax SplitSnd ::= KVar "." Comp [binder]
+    syntax SplitFst ::= KVar "," SplitSnd [binder]
+    syntax SplitSnd ::= KVar "->" Comp [binder]
 
-    syntax CaseL ::= KVar "." Comp [binder]
-    syntax CaseR ::= KVar "." Comp [binder]
+    syntax CaseL ::= KVar "->" Comp [binder]
+    syntax CaseR ::= KVar "->" Comp [binder]
 endmodule
 
 module HANDLERPRIME
@@ -52,17 +52,17 @@ module HANDLERPRIME
                 <k> $PGM:Comp</k>
                 </T>
 
-  rule [split]: split(vpair(V1,V2), X1 . X2 . M) => M[V1 / X1][V2 / X2]
+  rule [split]: split (V1,V2) with X1, X2 -> M => M[V1 / X1][V2 / X2]
 
-  rule [casel]: case(inl(V), X1 . M1, _  . _ ) => M1[V / X1]
-  rule [caser]: case(inr(V), _  . _ , X2 . M2) => M2[V / X2]
+  rule [casel]: case inl(V) of { X1 -> M1 ; _  -> _  } => M1[V / X1]
+  rule [caser]: case inr(V) of { _  -> _  ; X2 -> M2 } => M2[V / X2]
 
   rule [force]: {M}! => M
 
   rule [let]: let X = return(V) in M => M[V / X]
 
-  rule [apply]: (\ X . M) V => M[V / X]
+  rule [apply]: (\ X -> M) V => M[V / X]
 
-  rule [fst]: fst(cpair(M,_)) => M
-  rule [snd]: snd(cpair(_,M)) => M
+  rule [fst]: fst(< M, _ >) => M
+  rule [snd]: snd(< _, M >) => M
 endmodule
