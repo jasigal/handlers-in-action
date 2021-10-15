@@ -1,1 +1,1 @@
-((\x -> \y -> return(x)) y) z
+thunk((lam x -> lam y -> return(x)) y)! z
