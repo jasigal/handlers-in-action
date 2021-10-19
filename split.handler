@@ -1,1 +1,2 @@
-split(vpair(inl(vunit),inr(y)),a.b.return(vpair(b,a)))
+split (inl(()), inr(y)) with
+    a, b -> return((b,a))

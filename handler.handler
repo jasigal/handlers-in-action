@@ -1,0 +1,6 @@
+handle
+    let x = [get]( (), \y -> return( (y, y) ) ) in return(x)
+with
+    { return(x) -> return(x)
+    ; [get](x, k) -> k! inl(())
+    }

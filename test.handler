@@ -1,3 +1,2 @@
-split(vpair(inl(vpair(x,y)),inr(vpair(a,b))), l . r .
-    fst(cpair(return(r),return(l)))
-)
+split (inl((x,y)),inr((a,b))) with
+    l , r -> fst(<return(r),return(l)>)
