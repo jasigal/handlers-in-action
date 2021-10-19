@@ -12,16 +12,24 @@ module HANDLERPRIME-SYNTAX
                  KVar [color(red)]
                  // Value unit
                | "()" [color(red)]
-                 // Value pairing
-               | "(" Val "," Val ")" [color(red)]
-                 // Left sum inclusion
-               | "inl" "(" Val ")" [color(red)]
-                 // Right sum inclusion
-               | "inr" "(" Val ")" [color(red)]
-                 // Suspend a computation
-               | "thunk" "(" Comp ")" [color(red)]
                  // Brackets
                | "(" Val ")" [bracket, color(red)]
+  
+  // Need to separate from KVar in Val due to bug
+  // https://github.com/kframework/k/issues/2170
+
+  // Value pairing
+  syntax VPair ::= "(" Val "," Val ")" [color(red)]
+  syntax Val ::= VPair
+  // Left sum inclusion
+  syntax InL ::= "inl" "(" Val ")" [color(red)]
+  syntax Val ::= InL
+  // Right sum inclusion
+  syntax InR ::= "inr" "(" Val ")" [color(red)]
+  syntax Val ::= InR
+  // Suspend a computation
+  syntax Thunk ::= "thunk" "(" Comp ")" [color(red)]
+  syntax Val ::= Thunk
 
   // Computations
   //
@@ -40,7 +48,7 @@ module HANDLERPRIME-SYNTAX
                   // Force a suspended computation to continue
                 | Val "!" [color(green)]
                   // Let binding
-                | "let" KVar "=" Comp "in" Comp [strict(2), color(green)]
+                | "let" KVar "=" Comp "in" Comp [binder, strict(2), color(green)]
                   // Apply a computation to a value
                 | Comp Val [strict(1), color(green)]
                   // Project from a pair of computations
