@@ -1,7 +1,7 @@
 case inl(x) of
-    { y -> case inl(vunit) of
+    { y -> case inl(()) of
                { x -> return((x,y))
-               ; a -> return(vunit)
+               ; a -> return(())
                }
-    ; z -> return(vunit)
+    ; z -> return(())
     }

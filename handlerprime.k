@@ -23,16 +23,16 @@ module HANDLERPRIME-SYNTAX
   // https://github.com/kframework/k/issues/2170
 
   // Value pairing
-  syntax VPair ::= "(" Val "," Val ")" [color(red)]
+  syntax VPair ::= "(" Val "," Val ")" [color(red), format(%1%2%3 %4%5)]
   syntax Val ::= VPair
   // Left sum inclusion
-  syntax InL ::= "inl" "(" Val ")" [color(red)]
+  syntax InL ::= "inl" "(" Val ")" [color(red), format(%1%2%3%4)]
   syntax Val ::= InL
   // Right sum inclusion
-  syntax InR ::= "inr" "(" Val ")" [color(red)]
+  syntax InR ::= "inr" "(" Val ")" [color(red), format(%1%2%3%4)]
   syntax Val ::= InR
   // Suspend a computation
-  syntax Thunk ::= "{" Comp "}" [color(red)]
+  syntax Thunk ::= "{" Comp "}" [color(red), format(%1%2%3)]
   syntax Val ::= Thunk
 
   // Computations
@@ -44,11 +44,13 @@ module HANDLERPRIME-SYNTAX
   //
   // is a frame. Thus, let is strict in its second component.
   syntax Comp ::= // Split and bind a value pair
-                  "split" Val "with" SplitFst [color(green)]
+                  "split" Val "with" SplitFst
+                  [color(green), format(%1 %2 %3%i%n%4)]
                   // Case match on the empty value
-                | "void" "(" Val ")" [color(green)]
+                | "void" "(" Val ")" [color(green), format(%1%2%3)]
                   // Case match and bind on a sum value
-                | "case" Val "of" "{" CaseL ";" CaseR "}" [color(green)]
+                | "case" Val "of" "{" CaseL ";" CaseR "}"
+                  [color(green), format(%1 %2 %3%i%n%4 %5%n%6 %7%n%8%d)]
                   // Force a suspended computation to continue
                 | Val "!" [color(green), format(%1%2)]
                   // Let binding
@@ -57,8 +59,8 @@ module HANDLERPRIME-SYNTAX
                   // Apply a computation to a value
                 | Comp Val [strict(1), color(green), format((%1 %2))]
                   // Project from a pair of computations
-                | "fst" "(" Comp ")" [strict, color(green)]
-                | "snd" "(" Comp ")" [strict, color(green)]
+                | "fst" "(" Comp ")" [strict, color(green), format(%1%2%3%4)]
+                | "snd" "(" Comp ")" [strict, color(green), format(%1%2%3%4)]
                   // Handle a computation
                 | "handle" Comp "with" HandlerBody
                   [strict(1), color(green), format(%1%i%n%2%d%n%3%i%n%4%d)]
@@ -78,11 +80,13 @@ module HANDLERPRIME-SYNTAX
     syntax Comp ::= Op
     
     // Effect operations
-    syntax Op ::= "[" Id "]" "(" Val "," OpBody ")" [color(blue)]
-    syntax OpBody ::= "\\" KVar "->" Comp [binder, color(blue)]
+    syntax Op ::= "[" Id "]" "(" Val "," OpBody ")"
+                  [color(blue), format(%1%2%3%4%5%6 %7%8)]
+    syntax OpBody ::= "\\" KVar "->" Comp
+                      [binder, color(blue), format(%1%2 %3 %4)]
 
     // Generic effects
-    syntax GenericOp ::= "@" Id "(" Val ")" [color(blue)]
+    syntax GenericOp ::= "@" Id "(" Val ")" [color(blue), format(%1%2%3%4%5)]
     syntax Comp ::= GenericOp
 
     // Handler definitions
@@ -104,19 +108,21 @@ module HANDLERPRIME-SYNTAX
                           [binder, color(green), format(%1%2 %3 %4%n)]
     
     // Returns a value as a computation
-    syntax Return ::= "return" "(" Val ")" [color(blue)]
+    syntax Return ::= "return" "(" Val ")" [color(blue), format(%1%2%3%4)]
     // Lambda abstraction over a computation
-    syntax Lambda ::= "\\" KVar "->" Comp  [binder, color(blue)]
+    syntax Lambda ::= "\\" KVar "->" Comp 
+                      [binder, color(blue), format(%1%2 %3 %4)]
     // Unit type for computations
     syntax CUnit ::= "<>" [color(blue)]
     // Pair of computations
-    syntax CPair ::= "<" Comp "," Comp ">" [color(blue)]
+    syntax CPair ::= "<" Comp "," Comp ">" [color(blue), format(%1%2%3 %4%5)]
 
     // Canonical computations
     syntax Canonical ::= Return | Lambda | CUnit | CPair | Op
 
     // Binders for split
-    syntax SplitFst ::= KVar "," SplitSnd [binder, color(green)]
+    syntax SplitFst ::= KVar "," SplitSnd
+                        [binder, color(green), format(%1%2 %3)]
     syntax SplitSnd ::= KVar "->" Comp [binder, color(green)]
 
     // Binders for case
@@ -124,14 +130,14 @@ module HANDLERPRIME-SYNTAX
     syntax CaseR ::= KVar "->" Comp [binder, color(green)]
 
     // Integer functions
-    syntax IntComp ::= Val "+" Val
-                     | Val "*" Val
+    syntax IntComp ::= Val "+" Val [color(orange)]
+                     | Val "*" Val [color(orange)]
     syntax Comp ::= IntComp
 
     // Boolean functions
-    syntax BoolComp ::= Val "&&" Val
-                      | Val "||" Val
-                      | "not" "(" Val ")"
+    syntax BoolComp ::= Val "&&" Val [color(orange)]
+                      | Val "||" Val [color(orange)]
+                      | "not" "(" Val ")" [color(orange), format(%1%2%3%4)]
     syntax Comp ::= BoolComp
 endmodule
 
