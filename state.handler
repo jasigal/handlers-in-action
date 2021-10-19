@@ -1,0 +1,11 @@
+(handle
+    let x = [get]( (), \a -> return(a) ) in
+    let y = x + 1 in
+    let z = [set]( y, \a -> return(a)) in
+    let w = [get]( (), \a -> return(a)) in
+    return(w)
+with
+    { return(x) -> \y -> return(x)
+    ; [get](x, k) -> \s -> ((k! s) s)
+    ; [set](s, k) -> \x -> ((k! ()) s)
+    }) 1

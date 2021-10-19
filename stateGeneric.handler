@@ -1,0 +1,11 @@
+(handle
+    let x = @get(()) in
+    let y = x + 1 in
+    let _ = @set(y) in
+    let w = @get(()) in
+    return(w)
+with
+    { return(x) -> \_ -> return(x)
+    ; [get](_, k) -> \s -> ((k! s) s)
+    ; [set](s, k) -> \_ -> ((k! ()) s)
+    }) 1

@@ -4,6 +4,8 @@ module HANDLERPRIME-SYNTAX
   imports DOMAINS-SYNTAX
   imports KVAR-SYNTAX
   imports ID-SYNTAX
+  imports INT-SYNTAX
+  imports BOOL-SYNTAX
 
   // Values
   //
@@ -14,6 +16,8 @@ module HANDLERPRIME-SYNTAX
                | "()" [color(red)]
                  // Brackets
                | "(" Val ")" [bracket, color(red)]
+               | Int
+               | Bool
   
   // Need to separate from KVar in Val due to bug
   // https://github.com/kframework/k/issues/2170
@@ -28,7 +32,7 @@ module HANDLERPRIME-SYNTAX
   syntax InR ::= "inr" "(" Val ")" [color(red)]
   syntax Val ::= InR
   // Suspend a computation
-  syntax Thunk ::= "thunk" "(" Comp ")" [color(red)]
+  syntax Thunk ::= "{" Comp "}" [color(red)]
   syntax Val ::= Thunk
 
   // Computations
@@ -46,16 +50,18 @@ module HANDLERPRIME-SYNTAX
                   // Case match and bind on a sum value
                 | "case" Val "of" "{" CaseL ";" CaseR "}" [color(green)]
                   // Force a suspended computation to continue
-                | Val "!" [color(green)]
+                | Val "!" [color(green), format(%1%2)]
                   // Let binding
-                | "let" KVar "=" Comp "in" Comp [binder, strict(2), color(green)]
+                | "let" KVar "=" Comp "in" Comp
+                  [binder, strict(2), color(green), format(%1 %2 %3 %4 %5%n%6)]
                   // Apply a computation to a value
-                | Comp Val [strict(1), color(green)]
+                | Comp Val [strict(1), color(green), format((%1 %2))]
                   // Project from a pair of computations
                 | "fst" "(" Comp ")" [strict, color(green)]
                 | "snd" "(" Comp ")" [strict, color(green)]
                   // Handle a computation
-                | "handle" Comp "with" HandlerBody [strict(1), color(green)]
+                | "handle" Comp "with" HandlerBody
+                  [strict(1), color(green), format(%1%i%n%2%d%n%3%i%n%4%d)]
                   // Brackets
                 | "(" Comp ")" [bracket, color(green)]
     
@@ -75,24 +81,32 @@ module HANDLERPRIME-SYNTAX
     syntax Op ::= "[" Id "]" "(" Val "," OpBody ")" [color(blue)]
     syntax OpBody ::= "\\" KVar "->" Comp [binder, color(blue)]
 
+    // Generic effects
+    syntax GenericOp ::= "@" Id "(" Val ")" [color(blue)]
+    syntax Comp ::= GenericOp
+
     // Handler definitions
     //
     // A handler consists of one return matching case and then a list of
     // effect operation matching cases.
-    syntax HandlerBody ::= "{" HandlerReturn ";" HandlerOps "}" [color(green)]
+    syntax HandlerBody ::= "{" HandlerReturn ";" HandlerOps "}"
+                           [color(green), format(%1 %2%n%3 %4%n%5%n)]
     // Return matching case
     syntax HandlerReturn ::= "return" "(" KVar ")" "->" Comp [binder, color(green)]
     // List of effect operation matchings
-    syntax HandlerOps ::= List{HandlerOp,";"} [color(green)]
+    syntax HandlerOps ::= List{HandlerOp,";"} [color(green), format(%1%2 %3)]
     // Effect operation matchings
-    syntax HandlerOp ::= "[" Id "]" "(" HandlerOp1 [color(green)]
-    syntax HandlerOp1 ::= KVar "," HandlerOp2 [binder, color(green)]
-    syntax HandlerOp2 ::= KVar ")" "->" Comp [binder, color(green)]
+    syntax HandlerOp ::= "[" Id "]" "(" HandlerOp1
+                         [color(green), format(%1%2%3%4%5)]
+    syntax HandlerOp1 ::= KVar "," HandlerOp2
+                          [binder, color(green), format(%1%2 %3)]
+    syntax HandlerOp2 ::= KVar ")" "->" Comp
+                          [binder, color(green), format(%1%2 %3 %4%n)]
     
     // Returns a value as a computation
     syntax Return ::= "return" "(" Val ")" [color(blue)]
     // Lambda abstraction over a computation
-    syntax Lambda ::= "lam" KVar "->" Comp  [binder, color(blue)]
+    syntax Lambda ::= "\\" KVar "->" Comp  [binder, color(blue)]
     // Unit type for computations
     syntax CUnit ::= "<>" [color(blue)]
     // Pair of computations
@@ -108,6 +122,17 @@ module HANDLERPRIME-SYNTAX
     // Binders for case
     syntax CaseL ::= KVar "->" Comp [binder, color(green)]
     syntax CaseR ::= KVar "->" Comp [binder, color(green)]
+
+    // Integer functions
+    syntax IntComp ::= Val "+" Val
+                     | Val "*" Val
+    syntax Comp ::= IntComp
+
+    // Boolean functions
+    syntax BoolComp ::= Val "&&" Val
+                      | Val "||" Val
+                      | "not" "(" Val ")"
+    syntax Comp ::= BoolComp
 endmodule
 
 module HANDLERPRIME
@@ -122,6 +147,19 @@ module HANDLERPRIME
   // Programs are computations
   configuration <k> $PGM:Comp </k>
 
+  // Base type functions
+  //
+  // Integers
+  rule V1 + V2 => return(V1 +Int V2)
+  rule V1 * V2 => return(V1 *Int V2)
+  // Booleans
+  rule V1 && V2 => return(V1 andBool V2)
+  rule V1 || V2 => return(V1 orBool V2)
+  rule not(V) => return(notBool V)
+
+  // Generic operations
+  rule [genOp]: @(OP:Id)(V:Val) => [OP](V, \!X -> return(!X)) [structural]
+
   // Beta rule for split (\beta.\times)
   rule [split]: split (V1,V2) with X1, X2 -> M => M[V1 / X1][V2 / X2]
 
@@ -130,7 +168,7 @@ module HANDLERPRIME
   rule [caser]: case inr(V) of { _  -> _  ; X2 -> M2 } => M2[V / X2]
 
   // Beta rules for suspension and forcing (\beta.U)
-  rule [force]: thunk(M:Comp)! => M
+  rule [force]: {M:Comp}! => M
 
   // Beta rule for let (\beta.F)
   rule [let]: let X = return(V) in M => M[V / X]
@@ -138,7 +176,7 @@ module HANDLERPRIME
   rule [letOp]: let Y = [OP](V, \X -> M) in N => [OP](V, \X -> let Y = M in N)
 
   // Beta rule for application (\beta.->)
-  rule [apply]: (lam X -> M) V => M[V / X]
+  rule [apply]: (\X -> M) V => M[V / X]
   // Operation hosting rule for application, an instance of (hoist.op)
   rule [applyOp]: [OP](V, \X -> M) W => [OP](V, \X -> M W)
 
@@ -158,7 +196,7 @@ module HANDLERPRIME
   // handler body, and then take the result and apply the rule.
   rule [handleOp]: (handle [OP](V, \X -> M) with {RET; OPS}):Comp
     => #fun(match(P, K, N)
-              => N[V / P][thunk(lam X -> handle M with {RET; OPS}) / K]
+              => N[V / P][{\X -> handle M with {RET; OPS}} / K]
            )(getOp(OP, OPS))
 
   // Successful result of getOp
