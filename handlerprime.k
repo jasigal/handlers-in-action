@@ -81,12 +81,12 @@ module HANDLERPRIME-SYNTAX
     
     // Effect operations
     syntax Op ::= "[" Id "]" "(" Val "," OpBody ")"
-                  [color(blue), format(%1%2%3%4%5%6 %7%8)]
+                  [color(cyan), format(%1%2%3%4%5%6 %7%8)]
     syntax OpBody ::= "\\" KVar "->" Comp
-                      [binder, color(blue), format(%1%2 %3 %4)]
+                      [binder, color(cyan), format(%1%2 %3 %4)]
 
     // Generic effects
-    syntax GenericOp ::= "@" Id "(" Val ")" [color(blue), format(%1%2%3%4%5)]
+    syntax GenericOp ::= "@" Id "(" Val ")" [color(cyan), format(%1%2%3%4%5)]
     syntax Comp ::= GenericOp
 
     // Handler definitions
@@ -108,14 +108,14 @@ module HANDLERPRIME-SYNTAX
                           [binder, color(green), format(%1%2 %3 %4%n)]
     
     // Returns a value as a computation
-    syntax Return ::= "return" "(" Val ")" [color(blue), format(%1%2%3%4)]
+    syntax Return ::= "return" "(" Val ")" [color(cyan), format(%1%2%3%4)]
     // Lambda abstraction over a computation
     syntax Lambda ::= "\\" KVar "->" Comp 
-                      [binder, color(blue), format(%1%2 %3 %4)]
+                      [binder, color(cyan), format(%1%2 %3 %4)]
     // Unit type for computations
-    syntax CUnit ::= "<>" [color(blue)]
+    syntax CUnit ::= "<>" [color(cyan)]
     // Pair of computations
-    syntax CPair ::= "<" Comp "," Comp ">" [color(blue), format(%1%2%3 %4%5)]
+    syntax CPair ::= "<" Comp "," Comp ">" [color(cyan), format(%1%2%3 %4%5)]
 
     // Canonical computations
     syntax Canonical ::= Return | Lambda | CUnit | CPair | Op
