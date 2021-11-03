@@ -83,7 +83,7 @@ module HANDLERPRIME-SYNTAX
     syntax Op ::= "[" Id "]" "(" Val "," OpBody ")"
                   [color(cyan), format(%1%2%3%4%5%6 %7%8)]
     syntax OpBody ::= "\\" KVar "->" Comp
-                      [binder, color(cyan), format(%1%2 %3 %4)]
+                      [binder, color(cyan), format(%1%2% %3%i%n%4%d%n)]
 
     // Generic effects
     syntax GenericOp ::= "@" Id "(" Val ")" [color(cyan), format(%1%2%3%4%5)]
